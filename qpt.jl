@@ -10,17 +10,25 @@ using Random
 
 #https://www.overleaf.com/project/670e5cc299655836c5ba7fde
 
-function initstate(N,max_per_site)
-    state = zeros(N)
-    j = 1
-    while j < N
-        r = rand(1:max_per_site)
-        state[j] = r
-        if j+r < N
-            j += r
-        else
-            state[j] += N-sum(state)
-            j += r
+function true_rng(N,max_per_site)
+    state = [rand(0:max_per_site) for j in 1:N]
+    tot = sum(state)
+    while tot > N
+        j = rand(1:N)
+        if state[j] != 0
+            sub = rand(1:state[j])
+            if tot-sub < N
+                sub += N-tot
+            end
+            state[j] -= sub
+            tot -= sub
+        end
+    end
+    tot = sum(state)
+    while tot < N
+        r = rand(1:N)
+        if state[r] == 0
+            state[r] = N-tot
         end
     end
     return state
