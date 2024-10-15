@@ -9,7 +9,8 @@ using ClassicalOrthogonalPolynomials
 using Random
 
 let 
-    N = 10
+    # Initializes N bosons sites
+    N = 48
     sites = siteinds("Qudit", N)
     U = 1
     J = 1 
@@ -26,11 +27,13 @@ let
 
     psi0 = random_mps(sites;linkdims=10)
 
-    nsweeps = 5
-    maxdim = [10,20,100,100,200]
-    cutoff = [1E-10]
+    nsweeps = 5 # number of sweeps : 5
+    maxdim = [10,20,100,100,200] # bonds dimension
+    cutoff = [1E-10] # truncation error
 
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
 
+    average = expect(psi, "n"; sites=1)
+    @show(average)
     return
 end
