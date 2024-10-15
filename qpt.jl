@@ -9,7 +9,7 @@ using ClassicalOrthogonalPolynomials
 using Random
 
 let 
-    N = 100
+    N = 10
     sites = siteinds("Qudit", N)
     U = 1
     J = 1 
@@ -24,13 +24,13 @@ let
     end
     H = MPO(os,sites)
 
-    "psi0 = random_mps(sites;linkdims=10)
+    psi0 = random_mps(sites;linkdims=10)
 
     nsweeps = 5
     maxdim = [10,20,100,100,200]
     cutoff = [1E-10]
 
-    energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)"
+    energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
 
     return
 end
