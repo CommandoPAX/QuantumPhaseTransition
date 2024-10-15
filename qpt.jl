@@ -24,10 +24,10 @@ let
         os += -U/2,"n",j
     end
     H = MPO(os,sites)
-    TestState = ["1","1","1","1","2","1","1","0","1","1"]
+    TestState = ["1","1","1","1","1","1","1","1","1","1"]
     psi_test = MPS(sites, TestState)
     psi0 = random_mps(sites, TestState;linkdims=10)
-    @show(expect(psi_test, "n"; sites=1:N))
+    @show(expect(psi0, "n"; sites=1:N))
 
     nsweeps = 5 # number of sweeps : 5
     maxdim = [10,20,100,100,200] # bonds dimension
