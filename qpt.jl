@@ -63,13 +63,14 @@ function Googoogaga()
 
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
 
-    sing_density=[zeros(N) for j in 1:N]
+    sing_density=zeros(N,N)
     for j in 1:N
         for k in 1:N
             temp=deepcopy(psi)
             temp=apply(op("A",sites,k),temp)
             temp=apply(op("Adag",sites,j),temp)
-            sing_density[j,k]=abs(inner(psi,temp))^2
+            sing_density[j,k]= abs(inner(psi,temp))^2
+           
         end
     end
     return sing_density
