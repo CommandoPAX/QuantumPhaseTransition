@@ -7,7 +7,10 @@ using Plots
 using LaTeXStrings
 using ClassicalOrthogonalPolynomials
 using Random
+using PlotlyJS
 
+
+print("begin\n")
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
 function true_rng(N,max_per_site)
@@ -53,27 +56,27 @@ function Googoogaga()
     TestState = ["1","1","1","1","1","1","1","1","1","1"]
     psi_test = MPS(sites, TestState)
     psi0 = random_mps(sites, TestState;linkdims=10)
-    @show(expect(psi0, "n"; sites=1:N))
 
     nsweeps = 5 # number of sweeps : 5
     maxdim = [10,20,100,100,200] # bonds dimension
     cutoff = [1E-10] # truncation error
 
-    #energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
-    #average = expect(psi, "n"; sites=1:N)
-    #@show(average)
-    "for i=1:N
-        for j=1:N"
-            #average = expect(psi, "Adag",i,"A",j; sites=j)
-            "@show(average)
+    energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
+
+    sing_density=[zeros(N) for j in 1:N]
+    for j in 1:N
+        for k in 1:N
+            temp=deepcopy(psi)
+            temp=apply(op("A",sites,k),temp)
+            temp=apply(op("Adag",sites,j),temp)
+            sing_density[j,k]=abs(inner(psi,temp))^2
         end
-    end"
-    return
+    end
+    return sing_density
 end
 
 function plot(N,proba)
     surface(1:N,1:N,proba,xlabel="i",ylabel="j",zlabel="proba i to j")
 end
 
-N=100
-plot(N,true_rng(N,5))
+print(Googoogaga())
