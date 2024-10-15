@@ -44,3 +44,19 @@ let
     end"
     return
 end
+
+function initstate(N,max_per_site)
+    state = zeros(N)
+    j = 1
+    while j < N
+        r = rand(1:max_per_site)
+        state[j] = r
+        if j+r < N
+            j += r
+        else
+            state[N] += N-sum(state)
+            j += r
+        end
+    end
+    return state
+end
