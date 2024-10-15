@@ -1,0 +1,10 @@
+using Pkg
+Pkg.add("SparseArrays")
+Pkg.add("LinearAlgebra")
+Pkg.add("ITensors")
+Pkg.add("ProgressBars")
+Pkg.add("KrylovKit")
+Pkg.add("Plots")
+Pkg.add("LaTeXStrings")
+Pkg.add("ClassicalOrthogonalPolynomials")
+Pkg.add("Random")
