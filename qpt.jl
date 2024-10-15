@@ -20,7 +20,8 @@ let
     for j=1:N-1
         os += - J,"A",j,"Adag",j+1
         os += - J,"Adag",j,"A",j+1
-        os += U/2,"Adag", "A", j,("Adag", "A", j, -1)
+        os += U/2,"N",j,"N",j 
+        os += U/2,"N",j
     end
     H = MPO(os,sites)
 
