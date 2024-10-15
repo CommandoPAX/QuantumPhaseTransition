@@ -16,12 +16,11 @@ let
 
     # Trying to build the Hamiltonian
     os = OpSum()
-
     for j=1:N-1
-        os += - J,"A",j,"Adag",j+1
+        os += -J,"A",j,"Adag",j+1
         os += - J,"Adag",j,"A",j+1
-        os += U/2,"N",j,"N",j 
-        os += U/2,"N",j
+        os += U/2,"n",j,"n",j 
+        os += -U/2,"n",j
     end
     H = MPO(os,sites)
 
@@ -34,5 +33,4 @@ let
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)"
 
     return
-
 end
