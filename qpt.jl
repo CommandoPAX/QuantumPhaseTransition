@@ -71,7 +71,9 @@ function Googoogaga()
     return
 end
 
-let 
-    @show(true_rng(10,4))
-    @show(sum(true_rng(10,4)))
+function plot(N,proba)
+    surface(1:N,1:N,proba,xlabel="i",ylabel="j",zlabel="proba i to j")
 end
+
+N=100
+plot(N,true_rng(N,5))
