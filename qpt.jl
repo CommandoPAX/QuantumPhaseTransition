@@ -17,7 +17,7 @@ function initstate(N,max_per_site)
         if j+r < N
             j += r
         else
-            state[N] += N-sum(state)
+            state[j] += N-sum(state)
             j += r
         end
     end
