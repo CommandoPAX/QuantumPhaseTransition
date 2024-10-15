@@ -8,7 +8,7 @@ using LaTeXStrings
 using ClassicalOrthogonalPolynomials
 using Random
 
-#https://www.overleaf.com/project/670e5cc299655836c5ba7fde
+#https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
 function true_rng(N,max_per_site)
     state = [rand(0:max_per_site) for j in 1:N]
@@ -72,6 +72,6 @@ function Googoogaga()
 end
 
 let 
-    @show(initstate(10,4))
-    @show(sum(initstate(10,4)))
+    @show(true_rng(10,4))
+    @show(sum(true_rng(10,4)))
 end
