@@ -24,7 +24,7 @@ function initstate(N,max_per_site)
     return state
 end
 
-let 
+function Googoogaga()
     # Initializes N bosons sites
     N = 10
     sites = siteinds("Qudit", N, dim=N+1;conserve_number=true)
@@ -59,4 +59,9 @@ let
         end
     end"
     return
+end
+
+let 
+    @show(initstate(10,4))
+    @show(sum(initstate(10,4)))
 end
