@@ -72,6 +72,7 @@ function Googoogaga()
 end
 
 let 
-    @show(true_rng(10,4))
-    @show(sum(true_rng(10,4)))
+    a = true_rng(10,4)
+    @show(a)
+    @show(sum(a))
 end
