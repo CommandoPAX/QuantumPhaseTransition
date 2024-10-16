@@ -7,25 +7,25 @@ using LaTeXStrings
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
 function true_rng(N,max_per_site)
-    state = [rand(0:max_per_site) for j in 1:N]
+    state = [rand(0:max_per_site) for j in 1:N] #creation of random boson patches
     tot = sum(state)
-    while tot > N
+    while tot > N #Suppression of bosons if we have too many
         j = rand(1:N)
         if state[j] != 0
             tot = sum(state)
-            sub = rand(1:state[j])
-            if tot-sub < N
+            sub = rand(1:state[j]) #subtract a random value
+            if tot-sub < N #check if said value doesn't bring the total under the N total of boson required
                 sub = tot-N
             end
             state[j] -= sub
         end
     end
-    while tot < N
+    while tot < N #Addition of bosons if we have not enough
         j = rand(1:N)
         if state[j] < max_per_site
             add = rand(state[j]:max_per_site)
             tot = sum(state)
-            if tot+add > N
+            if tot+add > N #check if said value doesn't bring the total above the N total of boson required
                 add = N-tot
             end
             state[j] += add
