@@ -4,35 +4,9 @@ using Random
 using ITensorMPS
 using LaTeXStrings
 
-print("START OF SIMULATION \n")
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
-function true_rng(N,max_per_site)
-    state = [rand(0:max_per_site) for j in 1:N]
-    tot = sum(state)
-    while tot > N
-        j = rand(1:N)
-        if state[j] != 0
-            sub = rand(1:state[j])
-            if tot-sub < N
-                sub += N-tot
-            end
-            state[j] -= sub
-            tot -= sub
-        end
-    end
-    tot = sum(state)
-    while tot < N
-        r = rand(1:N)
-        if state[r] == 0
-            state[r] = N-tot
-        end
-    end
-    result = map(string,state)
-    return result
-end
-
-function SPDM(sites, psi)
+function SPDM(sites, psi, N)
     sing_density=zeros(N,N)
     for j in 1:N
         for k in 1:N
@@ -59,15 +33,18 @@ function HITMAP(N,DATA)
 end
 
 function Run_Simulation(N, U, J)
+
     # Initializes N bosons sites
+    print("Initializing...\n")
     sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
     
     # Variables needed for the dmrg algorithm
-    nsweeps = 50 # number of sweeps : 5
+    nsweeps = 50 # number of sweeps
     maxdim = [10,20,100,100,200] # bonds dimension
     cutoff = [1E-10] # truncation error
 
     # Creates the Bose-Hubbard model Hamiltonian
+    print("Computing Hamiltonian...\n")
     os = OpSum()
     for j=1:N-1
         os += -J,"A",j,"Adag",j+1
@@ -80,16 +57,54 @@ function Run_Simulation(N, U, J)
     H = MPO(os,sites)
 
     # Intialises the random state from a given distribution of states
+    print("Computing initial state...\n")
     Init_State = ["2", "0", "1", "1", "1", "1", "1", "1", "1", "1"]
     psi0 = random_mps(sites, Init_State;linkdims=10)
 
     # Executes the DRMG algorithm
+    print("Applying DRMG...\n")
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
 
     # Gets the single particle density matrix from the DMRG results
-    Single_Particle_Density, Particle_Number = SPDM(sites, psi)
+    print("Getting single particle densities...\n")
+    Single_Particle_Density, Particle_Number = SPDM(sites, psi, N)
+
+    # Creates the plots and display them (with the particle number at the end to verify)
+    print("Final particle number : ", Particle_Number)
+    Plot_3D(N, Single_Particle_Density)
+    #HITMAP(N, Single_Particle_Density)
+
 end
     
 let 
-    plot(10, Run_Simulation(10, 7, 1))
+    Run_Simulation(10, 7, 1)
 end
+
+#=
+Legacy function (not in use anymore) : 
+
+function true_rng(N,max_per_site)
+    state = [rand(0:max_per_site) for j in 1:N]
+    tot = sum(state)
+    while tot > N
+        j = rand(1:N)
+        if state[j] != 0
+            sub = rand(1:state[j])
+            if tot-sub < N
+                sub += N-tot
+            end
+            state[j] -= sub
+            tot -= sub
+        end
+    end
+    tot = sum(state)
+    while tot < N
+        r = rand(1:N)
+        if state[r] == 0
+            state[r] = N-tot
+        end
+    end
+    result = map(string,state)
+    return result
+end
+=#
