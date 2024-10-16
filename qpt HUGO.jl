@@ -105,7 +105,7 @@ end
 
 function plot_one_site_density(single_density,j)
        
-        one_site_density = single_density[:,j]
+        one_site_density = log.(single_density[:,j])
         N=length(one_site_density)
         plt=Plots.plot(1:N,one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
         legend=false, linewidth=2,linecolor=[:black])
