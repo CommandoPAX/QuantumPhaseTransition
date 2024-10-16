@@ -50,29 +50,6 @@ function SPDM(sites, psi, N)
     return sing_density, Partic_Numb
 end
 
-function DensToFunc(Particle_Density, index, N)
-    return Particle_Density[Int(N/2), index]
-end
-
-function VecToFunc(Vector, index)
-    return Vector[index]
-end
-
-function Deriv1(Particle_Density, N)
-    index = [k for k in 1:Int(N/2)]
-    return ForwardDiff.gradient(DensToFunc(Particle_Density, index, N), index)
-end
-
-function PhaseTransition(Particle_Density, N)
-    Prime = VecToFunc(Deriv1(Particle_Density, N), N)
-    Deriv2 = ForwardDiff.gradient(Prime, index)
-    if Deriv2 < 1e-3
-        return true 
-    else 
-        return false
-    end
-end
-
 function Plot_3D(N,DATA)
     col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
     Plots.surface(1:N,1:N,DATA,xlabel="i",ylabel="j",zlabel="Proba",color=col_grad)
