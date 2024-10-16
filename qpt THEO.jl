@@ -3,6 +3,7 @@ using Plots
 using Random
 using ITensorMPS
 using LaTeXStrings
+using ForwardDiff
 
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
@@ -47,6 +48,29 @@ function SPDM(sites, psi, N)
     end
     Partic_Numb = sum([sing_density[j, j] for j in 1:N])
     return sing_density, Partic_Numb
+end
+
+function DensToFunc(Particle_Density, index, N)
+    return Particle_Density[Int(N/2), index]
+end
+
+function VecToFunc(Vector, index)
+    return Vector[index]
+end
+
+function Deriv1(Particle_Density, N)
+    index = [k for k in 1:Int(N/2)]
+    return ForwardDiff.gradient(DensToFunc(Particle_Density, index, N), index)
+end
+
+function PhaseTransition(Particle_Density, N)
+    Prime = VecToFunc(Deriv1(Particle_Density, N), N)
+    Deriv2 = ForwardDiff.gradient(Prime, index)
+    if Deriv2 < 1e-3
+        return true 
+    else 
+        return false
+    end
 end
 
 function Plot_3D(N,DATA)
@@ -110,10 +134,13 @@ function Run_Simulation(N, U, J)
     print("Final particle number : ", Particle_Number)
     #Plot_3D(N, Single_Particle_Density)
     #Hitmap(N, Single_Particle_Density)
-    Plot_one_site_density(Single_Particle_Density, 5)
+    Plot_one_site_density(Single_Particle_Density, Int(N/2))
+
+    #Check for the phase we're in 
+    return PhaseTransition(Single_Particle_Density, N)
 
 end
     
 let 
-    Run_Simulation(30, 2, 1)
+    Run_Simulation(14, 20, 1)
 end
