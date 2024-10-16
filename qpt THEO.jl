@@ -26,7 +26,7 @@ function Plot_3D(N,DATA)
 end
 
 function Plot_one_site_density(single_density,j)
-    one_site_density = single_density[:,j]
+    one_site_density = log.(single_density[:,j])
     N=length(one_site_density)
     plt=Plots.plot(1:N,one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
     legend=false, linewidth=2,linecolor=[:black])
@@ -79,14 +79,14 @@ function Run_Simulation(N, U, J)
 
     # Creates the plots and display them (with the particle number at the end to verify)
     print("Final particle number : ", Particle_Number)
-    Plot_3D(N, Single_Particle_Density)
+    #Plot_3D(N, Single_Particle_Density)
     #Hitmap(N, Single_Particle_Density)
     Plot_one_site_density(Single_Particle_Density, 5)
 
 end
     
 let 
-    Run_Simulation(10, 7, 1)
+    Run_Simulation(30, 2, 1)
 end
 
 #=
