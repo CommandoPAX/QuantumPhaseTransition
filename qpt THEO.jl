@@ -4,6 +4,7 @@ using Random
 using ITensorMPS
 using LaTeXStrings
 using ForwardDiff
+using EasyFit
 
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
@@ -50,6 +51,15 @@ function SPDM(sites, psi, N)
     return sing_density, Partic_Numb
 end
 
+function isLinear(x,y,thresh)
+    fit = fitlinear(x,y)
+    if(fit.R < thresh)
+        return false
+    else 
+        return true
+    end
+end
+
 function Plot_3D(N,DATA)
     col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
     Plots.surface(1:N,1:N,DATA,xlabel="i",ylabel="j",zlabel="Proba",color=col_grad)
@@ -77,7 +87,7 @@ function Run_Simulation(N, U, J)
     sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
     
     # Variables needed for the dmrg algorithm
-    nsweeps = 50 # number of sweeps
+    nsweeps = 20 # number of sweeps
     maxdim = [10,20,100,100,200] # bonds dimension
     cutoff = [1E-10] # truncation error
 
@@ -114,10 +124,10 @@ function Run_Simulation(N, U, J)
     Plot_one_site_density(Single_Particle_Density, Int(N/2))
 
     #Check for the phase we're in 
-    return PhaseTransition(Single_Particle_Density, N)
+    return isLinear(log.(Single_Particle_Density[Int(N/2):N,Int(N/2)]) , [1.0*i for i in Int(N/2):N],0.995)
 
 end
     
 let 
-    Run_Simulation(14, 20, 1)
+    Run_Simulation(28, 2, 1)
 end

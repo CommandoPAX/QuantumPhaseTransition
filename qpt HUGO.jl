@@ -45,7 +45,7 @@ function Googoogaga()
     # Initializes N bosons sites
     N = 10
     sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
-    U = 7
+    U = 2
     J = 1 
 
     # Trying to build the Hamiltonian
@@ -83,7 +83,8 @@ function Googoogaga()
     single = single[Int(N/2):N]
     single = log.(single)
     index = [1.0*i for i in Int(N/2):N]
-    @show(isLinear(single,index,0.9999))
+    @show(isLinear(single,index,0.99))
+    Plots.plot(index, single)
     
     return sd
 end
