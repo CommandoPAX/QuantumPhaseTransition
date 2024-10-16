@@ -2,7 +2,7 @@ using ITensors
 using Plots
 using Random
 using ITensorMPS
-using LaTeXStrings
+using EasyFit
 
 print("begin\n")
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
@@ -65,8 +65,16 @@ function Googoogaga()
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
 
     sd = single_density(sites,psi,true)
-    plot_one_site_density(sd,5)
+    plot_one_site_density(sd,Int(N/2))
+ 
 
+
+    #Check the behavior of the system 
+    single = sd[:,Int(N/2)]
+    single = single[Int(N/2):N]
+    single = log.single
+    index = Int(N/2):N
+    @show(isLinear(single,index,0.9999))
     
     return sd
 end
@@ -113,9 +121,21 @@ function plot_one_site_density(single_density,j)
 end 
 
 
+
 function plot3D(N,DATA)
     col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
     Plots.surface(1:N,1:N,DATA,xlabel="i",ylabel="j",zlabel="Density",color=col_grad)
 end
 
 Googoogaga()
+
+
+
+function isLinear(x,y,thresh)
+    fit = fitlinear(x,y)
+    if(fit.R < thresh)
+        return false
+    else 
+        return true
+    end
+end
