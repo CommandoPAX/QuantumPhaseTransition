@@ -2,6 +2,7 @@ using ITensors
 using Plots
 using Random
 using ITensorMPS
+using LaTeXStrings
 
 print("begin\n")
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
@@ -70,7 +71,9 @@ function Googoogaga()
 end
 
 function plot(N,proba)
-    Plots.surface(1:N,1:N,proba,xlabel="i",ylabel="j",zlabel="proba i to j")
+    col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
+    Plots.surface(1:N,1:N,proba,xlabel="i",ylabel="j",zlabel="Proba",color=col_grad)
+    
 end
 
 function HITMAN(N,proba)
