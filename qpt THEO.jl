@@ -6,6 +6,35 @@ using LaTeXStrings
 
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
+function true_rng(N,max_per_site)
+    state = [rand(0:max_per_site) for j in 1:N]
+    tot = sum(state)
+    while tot > N
+        j = rand(1:N)
+        if state[j] != 0
+            tot = sum(state)
+            sub = rand(1:state[j])
+            if tot-sub < N
+                sub = tot-N
+            end
+            state[j] -= sub
+        end
+    end
+    while tot < N
+        j = rand(1:N)
+        if state[j] < max_per_site
+            add = rand(state[j]:max_per_site)
+            tot = sum(state)
+            if tot+add > N
+                add = N-tot
+            end
+            state[j] += add
+        end
+    end
+    result = map(string,state)
+    return result
+end
+
 function SPDM(sites, psi, N)
     sing_density=zeros(N,N)
     for j in 1:N
@@ -66,7 +95,7 @@ function Run_Simulation(N, U, J)
 
     # Intialises the random state from a given distribution of states
     print("Computing initial state...\n")
-    Init_State = ["2", "0", "1", "1", "1", "1", "1", "1", "1", "1"]
+    Init_State = true_rng(N, 5)
     psi0 = random_mps(sites, Init_State;linkdims=10)
 
     # Executes the DRMG algorithm
@@ -88,32 +117,3 @@ end
 let 
     Run_Simulation(30, 2, 1)
 end
-
-#=
-Legacy function (not in use anymore) : 
-
-function true_rng(N,max_per_site)
-    state = [rand(0:max_per_site) for j in 1:N]
-    tot = sum(state)
-    while tot > N
-        j = rand(1:N)
-        if state[j] != 0
-            sub = rand(1:state[j])
-            if tot-sub < N
-                sub += N-tot
-            end
-            state[j] -= sub
-            tot -= sub
-        end
-    end
-    tot = sum(state)
-    while tot < N
-        r = rand(1:N)
-        if state[r] == 0
-            state[r] = N-tot
-        end
-    end
-    result = map(string,state)
-    return result
-end
-=#
