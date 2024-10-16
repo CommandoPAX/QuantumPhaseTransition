@@ -73,6 +73,13 @@ function plot(N,proba)
     Plots.surface(1:N,1:N,proba,xlabel="i",ylabel="j",zlabel="proba i to j")
 end
 
+function HITMAN(N,proba)
+    xs = 1:N
+    ys = 1:N
+    plt = Plots.heatmap(xs,ys,proba)
+    display(plt)
+end
+    
 let 
     plot(10, Googoogaga())
 end
