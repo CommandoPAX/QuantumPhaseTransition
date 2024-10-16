@@ -28,14 +28,15 @@ function true_rng(N,max_per_site)
             state[r] = N-tot
         end
     end
-    return state
+    result = map(string,state)
+    return result
 end
 
 function Googoogaga()
     # Initializes N bosons sites
     N = 10
-    sites = siteinds("Qudit", N, dim=N+1;conserve_number=true)
-    U = 100
+    sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
+    U = 7
     J = 1 
 
     # Trying to build the Hamiltonian
@@ -43,15 +44,21 @@ function Googoogaga()
     for j=1:N-1
         os += -J,"A",j,"Adag",j+1
         os += - J,"Adag",j,"A",j+1
+    end
+    for j=1:N 
         os += U/2,"n",j,"n",j 
         os += -U/2,"n",j
     end
     H = MPO(os,sites)
-    TestState = ["1","1","1","1","1","1","1","1","1","1"]
+    #TestState = true_rng(N, 2)
+    #@show(TestState)
+    TestState = ["2", "0", "1", "1", "1", "1", "1", "1", "1", "1"]
+    #sum(map(Int, TestState))
     psi_test = MPS(sites, TestState)
+    #@show(psi_test)
     psi0 = random_mps(sites, TestState;linkdims=10)
-
-    nsweeps = 5 # number of sweeps : 5
+    #psi = psi_test
+    nsweeps = 50 # number of sweeps : 5
     maxdim = [10,20,100,100,200] # bonds dimension
     cutoff = [1E-10] # truncation error
 
@@ -63,10 +70,12 @@ function Googoogaga()
             temp=deepcopy(psi)
             temp=apply(op("A",sites,k),temp)
             temp=apply(op("Adag",sites,j),temp)
-            sing_density[j,k]= abs(inner(psi,temp))^2
+            sing_density[j,k]= inner(psi,temp)
            
         end
     end
+    diag = [sing_density[j, j] for j in 1:N]
+    print(sum(diag))
     return sing_density
 end
 
