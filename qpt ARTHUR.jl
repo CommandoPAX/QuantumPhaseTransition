@@ -101,3 +101,29 @@ let
     J=1
     plot(N, Googoogaga(N,U,J))
 end
+
+function MarieAntoinette(single_density,middle)
+    list = map(log10,single_density[:,middle])
+    list_ = list[1:Int(length(list)/2)]
+    lslope = []
+    for j in 1:(length(list_)-1)
+        push!(lslope,list_[j]-list_[j+1])
+    end
+    slope = sum(lslope)/length(lslope)
+    print("\n")
+    print(slope)
+    print("\n")
+    print(lslope)
+    print("\n")
+    s = 0
+    for j in 1:middle
+        if slope-0.1 < lslope[j] < slope+0.1
+            s+=1
+        end
+    end
+    if s > N/2
+        print("linear")
+    else 
+        print("not linear")
+    end
+end
