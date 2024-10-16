@@ -32,6 +32,15 @@ function true_rng(N,max_per_site)
     return result
 end
 
+function isLinear(x,y,thresh)
+    fit = fitlinear(x,y)
+    if(fit.R < thresh)
+        return false
+    else 
+        return true
+    end
+end
+
 function Googoogaga()
     # Initializes N bosons sites
     N = 10
@@ -65,15 +74,15 @@ function Googoogaga()
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
 
     sd = single_density(sites,psi,true)
-    plot_one_site_density(sd,Int(N/2))
+    #plot_one_site_density(sd,Int(N/2))
  
 
 
     #Check the behavior of the system 
     single = sd[:,Int(N/2)]
     single = single[Int(N/2):N]
-    single = log.single
-    index = Int(N/2):N
+    single = log.(single)
+    index = [1.0*i for i in Int(N/2):N]
     @show(isLinear(single,index,0.9999))
     
     return sd
@@ -131,11 +140,3 @@ Googoogaga()
 
 
 
-function isLinear(x,y,thresh)
-    fit = fitlinear(x,y)
-    if(fit.R < thresh)
-        return false
-    else 
-        return true
-    end
-end
