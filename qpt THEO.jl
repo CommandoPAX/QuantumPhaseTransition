@@ -25,7 +25,15 @@ function Plot_3D(N,DATA)
     Plots.surface(1:N,1:N,DATA,xlabel="i",ylabel="j",zlabel="Proba",color=col_grad)
 end
 
-function HITMAP(N,DATA)
+function Plot_one_site_density(single_density,j)
+    one_site_density = single_density[:,j]
+    N=length(one_site_density)
+    plt=Plots.plot(1:N,one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
+    legend=false, linewidth=2,linecolor=[:black])
+    display(plt)
+end 
+
+function Hitmap(N,DATA)
     xs = 1:N
     ys = 1:N
     plt = Plots.heatmap(xs,ys,DATA)
@@ -72,7 +80,8 @@ function Run_Simulation(N, U, J)
     # Creates the plots and display them (with the particle number at the end to verify)
     print("Final particle number : ", Particle_Number)
     Plot_3D(N, Single_Particle_Density)
-    #HITMAP(N, Single_Particle_Density)
+    #Hitmap(N, Single_Particle_Density)
+    Plot_one_site_density(Single_Particle_Density, 5)
 
 end
     
