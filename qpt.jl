@@ -81,3 +81,4 @@ function plot(N,proba)
 end
 
 print(Googoogaga())
+plot()
