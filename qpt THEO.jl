@@ -4,7 +4,7 @@ using Random
 using ITensorMPS
 using LaTeXStrings
 
-print("begin\n")
+print("START OF SIMULATION \n")
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
 function true_rng(N,max_per_site)
@@ -32,14 +32,42 @@ function true_rng(N,max_per_site)
     return result
 end
 
-function Googoogaga()
-    # Initializes N bosons sites
-    N = 10
-    sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
-    U = 7
-    J = 1 
+function SPDM(sites, psi)
+    sing_density=zeros(N,N)
+    for j in 1:N
+        for k in 1:N
+            temp=deepcopy(psi) # deepcopy of psi to avoid accidentaly messing with the files
+            temp=apply(op("A",sites,k),temp) # applies the annihilation operator on site k
+            temp=apply(op("Adag",sites,j),temp) # applies the creation operator on site j 
+            sing_density[j,k]= inner(psi,temp) # computes the inner product of psi and the single particle density operator
+        end
+    end
+    Partic_Numb = sum([sing_density[j, j] for j in 1:N])
+    return sing_density, Partic_Numb
+end
 
-    # Trying to build the Hamiltonian
+function Plot_3D(N,DATA)
+    col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
+    Plots.surface(1:N,1:N,DATA,xlabel="i",ylabel="j",zlabel="Proba",color=col_grad)
+end
+
+function HITMAP(N,DATA)
+    xs = 1:N
+    ys = 1:N
+    plt = Plots.heatmap(xs,ys,DATA)
+    display(plt)
+end
+
+function Run_Simulation(N, U, J)
+    # Initializes N bosons sites
+    sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
+    
+    # Variables needed for the dmrg algorithm
+    nsweeps = 50 # number of sweeps : 5
+    maxdim = [10,20,100,100,200] # bonds dimension
+    cutoff = [1E-10] # truncation error
+
+    # Creates the Bose-Hubbard model Hamiltonian
     os = OpSum()
     for j=1:N-1
         os += -J,"A",j,"Adag",j+1
@@ -50,48 +78,18 @@ function Googoogaga()
         os += -U/2,"n",j
     end
     H = MPO(os,sites)
-    #TestState = true_rng(N, 2)
-    #@show(TestState)
-    TestState = ["2", "0", "1", "1", "1", "1", "1", "1", "1", "1"]
-    #sum(map(Int, TestState))
-    psi_test = MPS(sites, TestState)
-    #@show(psi_test)
-    psi0 = random_mps(sites, TestState;linkdims=10)
-    #psi = psi_test
-    nsweeps = 50 # number of sweeps : 5
-    maxdim = [10,20,100,100,200] # bonds dimension
-    cutoff = [1E-10] # truncation error
 
+    # Intialises the random state from a given distribution of states
+    Init_State = ["2", "0", "1", "1", "1", "1", "1", "1", "1", "1"]
+    psi0 = random_mps(sites, Init_State;linkdims=10)
+
+    # Executes the DRMG algorithm
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
 
-    sing_density=zeros(N,N)
-    for j in 1:N
-        for k in 1:N
-            temp=deepcopy(psi)
-            temp=apply(op("A",sites,k),temp)
-            temp=apply(op("Adag",sites,j),temp)
-            sing_density[j,k]= inner(psi,temp)
-           
-        end
-    end
-    diag = [sing_density[j, j] for j in 1:N]
-    print(sum(diag))
-    return sing_density
-end
-
-function plot(N,proba)
-    col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
-    Plots.surface(1:N,1:N,proba,xlabel="i",ylabel="j",zlabel="Proba",color=col_grad)
-    
-end
-
-function HITMAN(N,proba)
-    xs = 1:N
-    ys = 1:N
-    plt = Plots.heatmap(xs,ys,proba)
-    display(plt)
+    # Gets the single particle density matrix from the DMRG results
+    Single_Particle_Density, Particle_Number = SPDM(sites, psi)
 end
     
 let 
-    plot(10, Googoogaga())
+    plot(10, Run_Simulation(10, 7, 1))
 end
