@@ -115,9 +115,15 @@ function MarieAntoinette(single_density,middle)
     print("\n")
     print(lslope)
     print("\n")
-    if slope-0.1 < lslope[rand(1:length(lslope))] < slope+0.1
-        print("linear\n")
-    else
-        print("not linear\n")
+    s = 0
+    for j in 1:middle
+        if slope-0.1 < lslope[j] < slope+0.1
+            s+=1
+        end
+    end
+    if s > N/2
+        print("linear")
+    else 
+        print("not linear")
     end
 end
