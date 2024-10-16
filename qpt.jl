@@ -1,14 +1,7 @@
-using SparseArrays
-using LinearAlgebra
-using ITensors, ITensorMPS
-using ProgressBars
-using KrylovKit
+using ITensors
 using Plots
-using LaTeXStrings
-using ClassicalOrthogonalPolynomials
 using Random
-using PlotlyJS
-
+using ITensorMPS
 
 print("begin\n")
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
@@ -77,8 +70,9 @@ function Googoogaga()
 end
 
 function plot(N,proba)
-    surface(1:N,1:N,proba,xlabel="i",ylabel="j",zlabel="proba i to j")
+    Plots.surface(1:N,1:N,proba,xlabel="i",ylabel="j",zlabel="proba i to j")
 end
 
-print(Googoogaga())
-plot()
+let 
+    plot(10, Googoogaga())
+end
