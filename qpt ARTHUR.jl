@@ -13,22 +13,28 @@ function true_rng(N,max_per_site)
     while tot > N
         j = rand(1:N)
         if state[j] != 0
+            tot = sum(state)
             sub = rand(1:state[j])
             if tot-sub < N
-                sub += N-tot
+                sub = tot-N
             end
             state[j] -= sub
-            tot -= sub
         end
     end
-    tot = sum(state)
     while tot < N
-        r = rand(1:N)
-        if state[r] == 0
-            state[r] = N-tot
+        j = rand(1:N)
+        if state[j] < max_per_site
+            add = rand(state[j]:max_per_site)
+            tot = sum(state)
+            if tot+add > N
+                add = N-tot
+            end
+            state[j] += add
         end
     end
+    print(sum(state))
     result = map(string,state)
+    print("initial state done\n")
     return result
 end
 
