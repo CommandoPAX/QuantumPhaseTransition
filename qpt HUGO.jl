@@ -58,25 +58,17 @@ function Googoogaga()
     #@show(psi_test)
     psi0 = random_mps(sites, TestState;linkdims=10)
     #psi = psi_test
-    nsweeps = 50 # number of sweeps : 5
+    nsweeps = 15 # number of sweeps : 5
     maxdim = [10,20,100,100,200] # bonds dimension
     cutoff = [1E-10] # truncation error
 
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
 
-    sing_density=zeros(N,N)
-    for j in 1:N
-        for k in 1:N
-            temp=deepcopy(psi)
-            temp=apply(op("A",sites,k),temp)
-            temp=apply(op("Adag",sites,j),temp)
-            sing_density[j,k]= inner(psi,temp)
-           
-        end
-    end
-    diag = [sing_density[j, j] for j in 1:N]
-    print(sum(diag))
-    return sing_density
+    sd = single_density(sites,psi,true)
+    plot_one_site_density(sd,5)
+
+    
+    return sd
 end
 
 function plot(N,proba)
@@ -92,6 +84,38 @@ function HITMAN(N,proba)
     display(plt)
 end
     
-let 
-    plot(10, Googoogaga())
+function single_density(sites,psi,total_particule=true)
+    N = length(sites)
+    sing_density=zeros(N,N)
+    for j in 1:N
+        for k in 1:N
+            temp=deepcopy(psi)
+            temp=apply(op("A",sites,k),temp)
+            temp=apply(op("Adag",sites,j),temp)
+            sing_density[j,k]= inner(psi,temp)
+           
+        end
+    end
+    diag = [sing_density[j, j] for j in 1:N]
+
+    
+
+    return sing_density
 end
+
+function plot_one_site_density(single_density,j)
+       
+        one_site_density = single_density[:,j]
+        N=length(one_site_density)
+        plt=Plots.plot(1:N,one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
+        legend=false, linewidth=2,linecolor=[:black])
+        display(plt)
+end 
+
+
+function plot3D(N,DATA)
+    col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
+    Plots.surface(1:N,1:N,DATA,xlabel="i",ylabel="j",zlabel="Density",color=col_grad)
+end
+
+Googoogaga()
