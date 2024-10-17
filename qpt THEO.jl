@@ -157,14 +157,14 @@ function Run_Simulation(N, U, J)
 end
     
 let 
-    U = [round(2+0.2*j, digits = 3) for j in 0:20]
-    N = 15
+    U = [round(2+0.5*j, digits = 3) for j in 0:12]
+    N = 40
     Index = []
     Values = []
     for k in U 
         En, Enp1 = Run_Simulation(N, k, 1)
         push!(Index, k)
-        push!(Values, abs(Delta(Enp1, En, N)))
+        push!(Values, Delta(Enp1, En, N))
     end
     Plots.plot(Index, Values, xlabel="U/J", ylabel="Delta", title="Energy variation as a function of the ratio U/J", legend=false, linewidth=2,linecolor=[:black])
 end
