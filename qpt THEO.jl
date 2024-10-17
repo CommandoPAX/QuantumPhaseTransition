@@ -250,3 +250,4 @@ let
     end
     Plots.plot(Index, Values, xlabel="U/J", ylabel="Delta", title="Energy variation as a function of the ratio U/J", legend=false, linewidth=2,linecolor=[:black])
 end
+# Valeur bizarre, refaire la simu entre 3 et 4.5 pour vérifier position transition de phase
