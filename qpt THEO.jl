@@ -9,7 +9,7 @@ using EasyFit
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
 function true_rng(N,max_per_site)
-    state = [rand(0:max_per_site) for j in 1:N] #creation of random boson patches
+    state = [rand(0:floor(Int, max_per_site)) for j in 1:N] #creation of random boson patches
     tot = sum(state)
     while tot > N #Suppression of bosons if we have too many
         j = rand(1:N)
@@ -99,7 +99,7 @@ function Run_Simulation(N, U, J)
 
     
     # Variables needed for the dmrg algorithm
-    nsweeps = 50 # number of sweeps
+    nsweeps = 30 # number of sweeps
     maxdim = [10,20,100,100,200] # bonds dimension
     cutoff = [1E-10] # truncation error
 
@@ -129,8 +129,8 @@ function Run_Simulation(N, U, J)
 
     # Intialises the random state from a given distribution of states
     print("Computing initial state...\n")
-    Init_State = true_rng(N, 5)
-    Init_State2 = true_rng(N+1, 5)
+    Init_State = true_rng(N, N/2)
+    Init_State2 = true_rng(N+1, (N+1)/2)
     psi0 = random_mps(sites, Init_State;linkdims=10)
     psi02 = random_mps(sites2, Init_State2; linkdims=10)
 
@@ -157,5 +157,14 @@ function Run_Simulation(N, U, J)
 end
     
 let 
-    U = [2]
+    U = [round(2+0.2*j, digits = 3) for j in 0:20]
+    N = 15
+    Index = []
+    Values = []
+    for k in U 
+        En, Enp1 = Run_Simulation(N, k, 1)
+        push!(Index, k)
+        push!(Values, abs(Delta(Enp1, En, N)))
+    end
+    Plots.plot(Index, Values, xlabel="U/J", ylabel="Delta", title="Energy variation as a function of the ratio U/J", legend=false, linewidth=2,linecolor=[:black])
 end
