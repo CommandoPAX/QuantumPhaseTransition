@@ -67,9 +67,9 @@ end
 
 #Plot the density for the site j in log-log scale
 function Plot_one_site_density(single_density,j)
-    one_site_density = log.(single_density[:,j])
+    one_site_density = log.(single_density[:, j])
     N=length(one_site_density)
-    plt=Plots.plot(1:N,one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
+    plt=Plots.plot(log.(1:N),one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
     legend=false, linewidth=2,linecolor=[:black])
     display(plt)
 end 
@@ -81,14 +81,24 @@ function Hitmap(N,DATA)
     display(plt)
 end
 
+function Delta(Enp1, En, N)
+    return Enp1 - (N+1)*(En/N) 
+end
+
+function Plot_Energy(delta, U, J)
+    Plots.plot(U/J, delta, xlabel="U/J", ylabel="Delta", title="Delta as a function of U/J")
+end
+
 function Run_Simulation(N, U, J)
 
     # Initializes N bosons sites
     print("Initializing...\n")
     sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
+    sites2 = siteinds("Qudit", N+1, dim=N+2;conserve_number=true, conserve_qns = true)
+
     
     # Variables needed for the dmrg algorithm
-    nsweeps = 20 # number of sweeps
+    nsweeps = 50 # number of sweeps
     maxdim = [10,20,100,100,200] # bonds dimension
     cutoff = [1E-10] # truncation error
 
@@ -105,30 +115,47 @@ function Run_Simulation(N, U, J)
     end
     H = MPO(os,sites)
 
+    os2 = OpSum()
+    for j=1:N
+        os2 += -J,"A",j,"Adag",j+1
+        os2 += - J,"Adag",j,"A",j+1
+    end
+    for j=1:N+1
+        os2 += U/2,"n",j,"n",j 
+        os2 += -U/2,"n",j
+    end
+    H2 = MPO(os2,sites2)
+
     # Intialises the random state from a given distribution of states
     print("Computing initial state...\n")
     Init_State = true_rng(N, 5)
+    Init_State2 = true_rng(N+1, 5)
     psi0 = random_mps(sites, Init_State;linkdims=10)
+    psi02 = random_mps(sites2, Init_State2; linkdims=10)
 
     # Executes the DRMG algorithm
     print("Applying DRMG...\n")
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
+    energy2,psi2 = dmrg(H2,psi02;nsweeps,maxdim,cutoff)
+
+    return energy, energy2 # This is an int
 
     # Gets the single particle density matrix from the DMRG results
-    print("Getting single particle densities...\n")
-    Single_Particle_Density, Particle_Number = SPDM(sites, psi, N)
+    #print("Getting single particle densities...\n")
+    #Single_Particle_Density, Particle_Number = SPDM(sites, psi, N)
 
     # Creates the plots and display them (with the particle number at the end to verify)
-    print("Final particle number : ", Particle_Number)
+    #print("Final particle number : ", Particle_Number)
     #Plot_3D(N, Single_Particle_Density)
     #Hitmap(N, Single_Particle_Density)
-    Plot_one_site_density(Single_Particle_Density, Int(N/2))
+    #Plot_one_site_density(Single_Particle_Density, Int(N/2))
 
-    #Check for the phase we're in 
-    return isLinear(log.(Single_Particle_Density[Int(N/2):N,Int(N/2)]) , [1.0*i for i in Int(N/2):N],0.995)
+    # Check for the phase we're in 
+    #return isLinear(log.(Single_Particle_Density[Int(N/2):N,Int(N/2)]) , [1.0*i for i in Int(N/2):N],0.995)
 
 end
     
 let 
-    Run_Simulation(28, 2, 1)
+    E1, E2 = Run_Simulation(28, 1, 1)
+    print("Delta : ", Delta(E2, E1, 28))
 end
