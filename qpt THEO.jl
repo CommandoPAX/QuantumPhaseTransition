@@ -203,15 +203,16 @@ function Run_Simulation(N, U, J)
 
     # Intialises the random state from a given distribution of states
     print("Computing initial state...\n")
-    Init_State = true_rng(N, N/2)
-    Init_State2 = true_rng(N+1, (N+1)/2)
-    psi0 = random_mps(sites, Init_State;linkdims=10)
-    psi02 = random_mps(sites2, Init_State2; linkdims=10)
+    Init_State = true_rng(N, N/4)
+    Init_State2 = true_rng(N+1, (N+1)/4)
+    psi0 = ITensors.ITensorMPS.MPS(sites, Init_State)
+    psi02 = ITensors.ITensorMPS.MPS(sites2, Init_State2)
+    #psi02 = MPS(sites2, Init_State2; linkdims=10)
 
     # Executes the DMRG algorithm
     print("Applying DMRG...\n")
-    energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
-    energy2,psi2 = dmrg(H2,psi02;nsweeps,maxdim,cutoff)
+    energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff, outputlevel=0)
+    energy2,psi2 = dmrg(H2,psi02;nsweeps,maxdim,cutoff, outputlevel=0)
 
     return energy, energy2 # This is an int
 
@@ -232,19 +233,20 @@ end
     
 let 
     U = [round(2.5+0.1*j, digits = 3) for j in 0:15]
-    N = 40
+    N = 30
     Index = []
     Values = []
     Old = 0
     for k in U 
-        print("########################## Iteration : ", k, " ##########################")
+        print("########################## Iteration : ", k, " ##########################\n")
         En, Enp1 = Run_Simulation(N, k, 1)
         push!(Index, k)
         New=Delta(Enp1, En, N)
         push!(Values, New)
-        if abs(New-Old) > 0.1
-            print("########################## Phase transition found at U/J : ", k, "##########################")
+        if abs(New-Old) > 0.1 && Old !=0
+            print("########################## Phase transition found at U/J : ", k, "##########################\n")
         end 
+        Old = New
     end
     Plots.plot(Index, Values, xlabel="U/J", ylabel="Delta", title="Energy variation as a function of the ratio U/J", legend=false, linewidth=2,linecolor=[:black])
 end

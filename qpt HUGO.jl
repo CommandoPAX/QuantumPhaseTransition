@@ -161,7 +161,8 @@ function Run_Simulation(N, U, J)
     # Intialises the random state from a given distribution of states
     print("Computing initial state...\n")
     Init_State = true_rng(N, 5)
-    psi0 = random_mps(sites, Init_State;linkdims=10)
+    psi0 = ITensors.ITensorMPS.MPS(sites, Init_State)
+    #psi0 = random_mps(sites, Init_State;linkdims=10)
 
     # Executes the DMRG algorithm
     print("Applying DMRG...\n")
