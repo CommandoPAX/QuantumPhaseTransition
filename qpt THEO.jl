@@ -90,6 +90,80 @@ function Plot_Energy(delta, U, J)
     Plots.plot(U/J, delta, xlabel="U/J", ylabel="Delta", title="Delta as a function of U/J")
 end
 
+function size_increasing_behavior(filenames,loglogscale=true)
+
+    plt = Plots.plot()
+   
+    
+        for f in filenames
+            
+            @show(f)
+            single_densities = import_density(f)
+            N= length(single_densities[:,1])
+            log_sp = [log(abs(single_densities[i])) for i in Int(N/2)+1:N ]
+            if(loglogscale)
+                log_x = [log(abs(i-N/2)) for i in Int(N/2)+1:N]
+            else
+                log_x = [abs(i-N/2) for i in Int(N/2)+1:N]
+            
+            end
+            
+            plot!(log_x,log_sp,label="N= "*string(N))
+        end
+        plot!(xlabel="log(distance)",ylabel="log(density)")
+    display(plt)
+    
+end 
+
+#Export data in a .txt file. Data could be reimported using 'import_density' function.
+function export_density(single_matrix_density,U,J)
+    N= length(single_matrix_density[:,1])
+
+    file = open("simulation_data_size_"*string(N)*"_"*string(Dates.format(now(), "yyyy-mm-dd-HH_MM_SS"))*".txt","w") do f
+
+        write(f,"U="*string(U)*" J="*string(J)*" N="*string(N))
+
+        for i in 1:N
+            write(f,"\n")
+
+            for j in 1:N
+                write(f, string(single_matrix_density[i,j])*" ")
+            end
+
+        end
+        print("Data saved in file")
+        close(f)
+    end
+end
+
+#Import data from a .txt file, cf 'export_density' function.
+function import_density(filepath)
+    single_density_matrix = []
+    open(filepath,"r") do f
+        data = readlines(f)
+        U,J,N = split(data[1]," ")
+        U= parse(Float64,U[3:end])
+        J= parse(Float64,J[3:end])
+        N= parse(Int,N[3:end])
+       
+        single_density_matrix = zeros(N,N)
+        
+        for i in 2:N+1
+            line = split(data[i]," ")
+            for j in 1:N
+            single_density_matrix[i-1,j]=parse.(Float64,line[j])
+            end
+            
+        end
+  
+    print("Data retrieved : "* "U="*string(U)*" J="*string(J)*" N="*string(N))
+    close(f)
+    
+    end
+    return single_density_matrix
+    
+end
+
 function Run_Simulation(N, U, J)
 
     # Initializes N bosons sites
@@ -157,14 +231,20 @@ function Run_Simulation(N, U, J)
 end
     
 let 
-    U = [round(2+0.5*j, digits = 3) for j in 0:12]
+    U = [round(2.5+0.1*j, digits = 3) for j in 0:15]
     N = 40
     Index = []
     Values = []
+    Old = 0
     for k in U 
+        print("########################## Iteration : ", k, " ##########################")
         En, Enp1 = Run_Simulation(N, k, 1)
         push!(Index, k)
-        push!(Values, Delta(Enp1, En, N))
+        New=Delta(Enp1, En, N)
+        push!(Values, New)
+        if abs(New-Old) > 0.1
+            print("########################## Phase transition found at U/J : ", k, "##########################")
+        end 
     end
     Plots.plot(Index, Values, xlabel="U/J", ylabel="Delta", title="Energy variation as a function of the ratio U/J", legend=false, linewidth=2,linecolor=[:black])
 end
