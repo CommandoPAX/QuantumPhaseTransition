@@ -5,6 +5,7 @@ using ITensorMPS
 using LaTeXStrings
 using ForwardDiff
 using EasyFit
+using Dates
 
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
@@ -81,6 +82,58 @@ function Hitmap(N,DATA)
     display(plt)
 end
 
+
+
+#Export data in a .txt file. Data could be reimported using 'import_density' function.
+function export_density(single_matrix_density,U,J)
+    N= length(single_matrix_density[:,1])
+
+    file = open("simulation_data_size_"*string(N)*"_"*string(Dates.format(now(), "yyyy-mm-dd-HH_MM_SS"))*".txt","w") do f
+
+        write(f,"U="*string(U)*" J="*string(J)*" N="*string(N))
+
+        for i in 1:N
+            write(f,"\n")
+
+            for j in 1:N
+                write(f, string(single_matrix_density[i,j])*" ")
+            end
+
+        end
+        print("Data saved in file")
+        close(f)
+    end
+end
+
+#Import data from a .txt file, cf 'export_density' function.
+function import_density(filepath)
+    single_density_matrix = []
+    open(filepath,"r") do f
+        data = readlines(f)
+        U,J,N = split(data[1]," ")
+        U= parse(Float64,U[3:end])
+        J= parse(Float64,J[3:end])
+        N= parse(Int,N[3:end])
+       
+        single_density_matrix = zeros(N,N)
+        
+        for i in 2:N+1
+            line = split(data[i]," ")
+            for j in 1:N
+            single_density_matrix[i-1,j]=parse.(Float64,line[j])
+            end
+            
+        end
+  
+    print("Data retrieved : "* "U="*string(U)*" J="*string(J)*" N="*string(N))
+    close(f)
+    
+    end
+    return single_density_matrix
+    
+end
+
+
 function Run_Simulation(N, U, J)
 
     # Initializes N bosons sites
@@ -120,16 +173,51 @@ function Run_Simulation(N, U, J)
 
     # Creates the plots and display them (with the particle number at the end to verify)
     print("Final particle number : ", Particle_Number)
+
     #Plot_3D(N, Single_Particle_Density)
+
     #Hitmap(N, Single_Particle_Density)
-    Plot_one_site_density(Single_Particle_Density, Int(N/2))
+
+    #Plot_one_site_density(Single_Particle_Density, Int(N/2))
 
     #Check for the phase we're in 
-    abs_sp = [abs(Single_Particle_Density[i]) for i in Int(N/2)+1:N ]
-    return isLinear(log.(abs_sp) , [log(abs(i-N/2)) for i in Int(N/2)+1:N],0.995)
+    #abs_sp = [abs(Single_Particle_Density[i]) for i in Int(N/2)+1:N ]
+    # print(isLinear(log.(abs_sp) , [log(abs(i-N/2)) for i in Int(N/2)+1:N],0.995))
+
+    export_density(Single_Particle_Density,U,J)
+    return Single_Particle_Density
 
 end
+
+#Vizualize the effect of the increase of the size of the system N.
+# 'filenames' is a list of paths (as string) to the file containing the data.
+#The goal is to compare cases where U/J is constant but N change 
+function size_increasing_behavior(filenames,loglogscale=true)
+
+    plt = Plots.plot()
+   
+    
+        for f in filenames
+            
+            @show(f)
+            single_densities = import_density(f)
+            N= length(single_densities[:,1])
+            log_sp = [log(abs(single_densities[i])) for i in Int(N/2)+1:N ]
+            if(loglogscale)
+                log_x = [log(abs(i-N/2)) for i in Int(N/2)+1:N]
+            else
+                log_x = [abs(i-N/2) for i in Int(N/2)+1:N]
+            
+            end
+            
+            plot!(log_x,log_sp,label="N= "*string(N))
+        end
+        plot!(xlabel="log(distance)",ylabel="log(density)")
+    display(plt)
+    
+end 
     
 let 
-    Run_Simulation(30, 1, 10)
+    
+    
 end
