@@ -67,9 +67,10 @@ end
 
 #Plot the density for the site j in log-log scale
 function Plot_one_site_density(single_density,j)
-    one_site_density = log.(single_density[:, j])
+    one_site_density = log.(single_density[:,j])
     N=length(one_site_density)
-    plt=Plots.plot(log.(1:N),one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
+    one_site_density=one_site_density[Int(N/2)+1:N]
+    plt=Plots.plot(log.(Int(N/2)+1:N),one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
     legend=false, linewidth=2,linecolor=[:black])
     display(plt)
 end 
@@ -133,8 +134,8 @@ function Run_Simulation(N, U, J)
     psi0 = random_mps(sites, Init_State;linkdims=10)
     psi02 = random_mps(sites2, Init_State2; linkdims=10)
 
-    # Executes the DRMG algorithm
-    print("Applying DRMG...\n")
+    # Executes the DMRG algorithm
+    print("Applying DMRG...\n")
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
     energy2,psi2 = dmrg(H2,psi02;nsweeps,maxdim,cutoff)
 
@@ -156,6 +157,5 @@ function Run_Simulation(N, U, J)
 end
     
 let 
-    E1, E2 = Run_Simulation(28, 1, 1)
-    print("Delta : ", Delta(E2, E1, 28))
+    U = [2]
 end
