@@ -65,6 +65,7 @@ function Plot_3D(N,DATA)
     Plots.surface(1:N,1:N,DATA,xlabel="i",ylabel="j",zlabel="Proba",color=col_grad)
 end
 
+#Plot the density for the site j in log-log scale
 function Plot_one_site_density(single_density,j)
     one_site_density = log.(single_density[:,j])
     N=length(one_site_density)

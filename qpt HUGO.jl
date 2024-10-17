@@ -2,34 +2,53 @@ using ITensors
 using Plots
 using Random
 using ITensorMPS
+using LaTeXStrings
+using ForwardDiff
 using EasyFit
 
-print("begin\n")
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
 function true_rng(N,max_per_site)
-    state = [rand(0:max_per_site) for j in 1:N]
+    state = [rand(0:max_per_site) for j in 1:N] #creation of random boson patches
     tot = sum(state)
-    while tot > N
+    while tot > N #Suppression of bosons if we have too many
         j = rand(1:N)
         if state[j] != 0
-            sub = rand(1:state[j])
-            if tot-sub < N
-                sub += N-tot
+            tot = sum(state)
+            sub = rand(1:state[j]) #subtract a random value
+            if tot-sub < N #check if said value doesn't bring the total under the N total of boson required
+                sub = tot-N
             end
             state[j] -= sub
-            tot -= sub
         end
     end
-    tot = sum(state)
-    while tot < N
-        r = rand(1:N)
-        if state[r] == 0
-            state[r] = N-tot
+    while tot < N #Addition of bosons if we have not enough
+        j = rand(1:N)
+        if state[j] < max_per_site
+            add = rand(state[j]:max_per_site)
+            tot = sum(state)
+            if tot+add > N #check if said value doesn't bring the total above the N total of boson required
+                add = N-tot
+            end
+            state[j] += add
         end
     end
     result = map(string,state)
     return result
+end
+
+function SPDM(sites, psi, N)
+    sing_density=zeros(N,N)
+    for j in 1:N
+        for k in 1:N
+            temp=deepcopy(psi) # deepcopy of psi to avoid accidentaly messing with the files
+            temp=apply(op("A",sites,k),temp) # applies the annihilation operator on site k
+            temp=apply(op("Adag",sites,j),temp) # applies the creation operator on site j 
+            sing_density[j,k]= inner(psi,temp) # computes the inner product of psi and the single particle density operator
+        end
+    end
+    Partic_Numb = sum([sing_density[j, j] for j in 1:N])
+    return sing_density, Partic_Numb
 end
 
 function isLinear(x,y,thresh)
@@ -41,14 +60,40 @@ function isLinear(x,y,thresh)
     end
 end
 
-function Googoogaga()
-    # Initializes N bosons sites
-    N = 10
-    sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
-    U = 2
-    J = 1 
+function Plot_3D(N,DATA)
+    col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
+    Plots.surface(1:N,1:N,DATA,xlabel="i",ylabel="j",zlabel="Proba",color=col_grad)
+end
 
-    # Trying to build the Hamiltonian
+function Plot_one_site_density(single_density,j)
+    one_site_density = log.(single_density[:,j])
+    N=length(one_site_density)
+    one_site_density=one_site_density[Int(N/2)+1:N]
+    plt=Plots.plot(log.(Int(N/2)+1:N),one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
+    legend=false, linewidth=2,linecolor=[:black])
+    display(plt)
+end 
+
+function Hitmap(N,DATA)
+    xs = 1:N
+    ys = 1:N
+    plt = Plots.heatmap(xs,ys,DATA)
+    display(plt)
+end
+
+function Run_Simulation(N, U, J)
+
+    # Initializes N bosons sites
+    print("Initializing...\n")
+    sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
+    
+    # Variables needed for the dmrg algorithm
+    nsweeps = 10 # number of sweeps
+    maxdim = [10,20,100,100,200] # bonds dimension
+    cutoff = [1E-10] # truncation error
+
+    # Creates the Bose-Hubbard model Hamiltonian
+    print("Computing Hamiltonian...\n")
     os = OpSum()
     for j=1:N-1
         os += -J,"A",j,"Adag",j+1
@@ -59,85 +104,32 @@ function Googoogaga()
         os += -U/2,"n",j
     end
     H = MPO(os,sites)
-    #TestState = true_rng(N, 2)
-    #@show(TestState)
-    TestState = ["2", "0", "1", "1", "1", "1", "1", "1", "1", "1"]
-    #sum(map(Int, TestState))
-    psi_test = MPS(sites, TestState)
-    #@show(psi_test)
-    psi0 = random_mps(sites, TestState;linkdims=10)
-    #psi = psi_test
-    nsweeps = 15 # number of sweeps : 5
-    maxdim = [10,20,100,100,200] # bonds dimension
-    cutoff = [1E-10] # truncation error
 
+    # Intialises the random state from a given distribution of states
+    print("Computing initial state...\n")
+    Init_State = true_rng(N, 5)
+    psi0 = random_mps(sites, Init_State;linkdims=10)
+
+    # Executes the DMRG algorithm
+    print("Applying DMRG...\n")
     energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff)
 
-    sd = single_density(sites,psi,true)
-    #plot_one_site_density(sd,Int(N/2))
- 
+    # Gets the single particle density matrix from the DMRG results
+    print("Getting single particle densities...\n")
+    Single_Particle_Density, Particle_Number = SPDM(sites, psi, N)
 
+    # Creates the plots and display them (with the particle number at the end to verify)
+    print("Final particle number : ", Particle_Number)
+    #Plot_3D(N, Single_Particle_Density)
+    #Hitmap(N, Single_Particle_Density)
+    Plot_one_site_density(Single_Particle_Density, Int(N/2))
 
-    #Check the behavior of the system 
-    single = sd[:,Int(N/2)]
-    single = single[Int(N/2):N]
-    single = log.(single)
-    index = [1.0*i for i in Int(N/2):N]
-    @show(isLinear(single,index,0.99))
-    Plots.plot(index, single)
-    
-    return sd
-end
+    #Check for the phase we're in 
+    abs_sp = [abs(Single_Particle_Density[i]) for i in Int(N/2)+1:N ]
+    return isLinear(log.(abs_sp) , [log(abs(i-N/2)) for i in Int(N/2)+1:N],0.995)
 
-function plot(N,proba)
-    col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
-    Plots.surface(1:N,1:N,proba,xlabel="i",ylabel="j",zlabel="Proba",color=col_grad)
-    
-end
-
-function HITMAN(N,proba)
-    xs = 1:N
-    ys = 1:N
-    plt = Plots.heatmap(xs,ys,proba)
-    display(plt)
 end
     
-function single_density(sites,psi,total_particule=true)
-    N = length(sites)
-    sing_density=zeros(N,N)
-    for j in 1:N
-        for k in 1:N
-            temp=deepcopy(psi)
-            temp=apply(op("A",sites,k),temp)
-            temp=apply(op("Adag",sites,j),temp)
-            sing_density[j,k]= inner(psi,temp)
-           
-        end
-    end
-    diag = [sing_density[j, j] for j in 1:N]
-
-    
-
-    return sing_density
+let 
+    Run_Simulation(30, 1, 10)
 end
-
-function plot_one_site_density(single_density,j)
-       
-        one_site_density = log.(single_density[:,j])
-        N=length(one_site_density)
-        plt=Plots.plot(1:N,one_site_density,xlabel="site #",ylabel="one-site density",title="One site density for site " * string(j),
-        legend=false, linewidth=2,linecolor=[:black])
-        display(plt)
-end 
-
-
-
-function plot3D(N,DATA)
-    col_grad = cgrad([:orange, :blue], [0.1, 0.3, 0.8])
-    Plots.surface(1:N,1:N,DATA,xlabel="i",ylabel="j",zlabel="Density",color=col_grad)
-end
-
-Googoogaga()
-
-
-
