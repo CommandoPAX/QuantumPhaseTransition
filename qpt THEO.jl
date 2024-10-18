@@ -165,6 +165,12 @@ function import_density(filepath)
 end
 
 function Run_Simulation(N, U, J)
+    #=
+    This function handles creating the sites with a random boson distribution and running the simulation using the DMRG algorithm.
+    N -- Number of bosons and bosons sites
+    U -- Value of the pairwise interaction
+    J -- Value of the tunneling rate
+    =#
 
     # Initializes N bosons sites
     print("Initializing...\n")
@@ -188,7 +194,7 @@ function Run_Simulation(N, U, J)
         os += U/2,"n",j,"n",j 
         os += -U/2,"n",j
     end
-    H = MPO(os,sites)
+    H = MPO(os,sites) # Transforms the Hamiltonian into a matrix product operator
 
     os2 = OpSum()
     for j=1:N
@@ -199,14 +205,14 @@ function Run_Simulation(N, U, J)
         os2 += U/2,"n",j,"n",j 
         os2 += -U/2,"n",j
     end
-    H2 = MPO(os2,sites2)
+    H2 = MPO(os2,sites2) # Transforms the Hamiltonian into a matrix product operator
 
-    # Intialises the random state from a given distribution of states
+    # Intialises the random state from a random distribution of states
     print("Computing initial state...\n")
     Init_State = true_rng(N, N/4)
     Init_State2 = true_rng(N+1, (N+1)/4)
     psi0 = ITensors.ITensorMPS.MPS(sites, Init_State)
-    psi02 = ITensors.ITensorMPS.MPS(sites2, Init_State2)
+    psi02 = ITensors.ITensorMPS.MPS(sites, Init_State2)
     #psi02 = MPS(sites2, Init_State2; linkdims=10)
 
     # Executes the DMRG algorithm
