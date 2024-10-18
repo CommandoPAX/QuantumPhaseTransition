@@ -8,27 +8,28 @@ using EasyFit
 
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
-function true_rng(N,max_per_site)
-    state = [rand(0:floor(Int, max_per_site)) for j in 1:N] #creation of random boson patches
+function true_rng(size,nb_bosons,max_per_site)
+    max_per_site = floor(Int, max_per_site)
+    state = [rand(0:max_per_site) for j in 1:size] #creation of random boson patches
     tot = sum(state)
-    while tot > N #Suppression of bosons if we have too many
-        j = rand(1:N)
+    while tot > nb_bosons #Suppression of bosons if we have too many
+        j = rand(1:size)
         if state[j] != 0
             tot = sum(state)
             sub = rand(1:state[j]) #subtract a random value
-            if tot-sub < N #check if said value doesn't bring the total under the N total of boson required
-                sub = tot-N
+            if tot-sub < nb_bosons #check if said value doesn't bring the total under the N total of boson required
+                sub = tot-nb_bosons
             end
             state[j] -= sub
         end
     end
-    while tot < N #Addition of bosons if we have not enough
-        j = rand(1:N)
+    while tot < nb_bosons #Addition of bosons if we have not enough
+        j = rand(1:size)
         if state[j] < max_per_site
             add = rand(state[j]:max_per_site)
             tot = sum(state)
-            if tot+add > N #check if said value doesn't bring the total above the N total of boson required
-                add = N-tot
+            if tot+add > nb_bosons #check if said value doesn't bring the total above the N total of boson required
+                add = nb_bosons-tot
             end
             state[j] += add
         end
@@ -174,12 +175,10 @@ function Run_Simulation(N, U, J)
 
     # Initializes N bosons sites
     print("Initializing...\n")
-    sites = siteinds("Qudit", N, dim=N+1;conserve_number=true, conserve_qns = true)
-    sites2 = siteinds("Qudit", N+1, dim=N+2;conserve_number=true, conserve_qns = true)
-
+    sites = siteinds("Qudit", N, dim=N+2;conserve_number=true, conserve_qns = true)
     
     # Variables needed for the dmrg algorithm
-    nsweeps = 60 # number of sweeps
+    nsweeps = 40 # number of sweeps
     maxdim = [10,20,100,100,200] # bonds dimension
     cutoff = [1E-10] # truncation error
 
@@ -196,29 +195,18 @@ function Run_Simulation(N, U, J)
     end
     H = MPO(os,sites) # Transforms the Hamiltonian into a matrix product operator
 
-    os2 = OpSum()
-    for j=1:N
-        os2 += -J,"A",j,"Adag",j+1
-        os2 += - J,"Adag",j,"A",j+1
-    end
-    for j=1:N+1
-        os2 += U/2,"n",j,"n",j 
-        os2 += -U/2,"n",j
-    end
-    H2 = MPO(os2,sites2) # Transforms the Hamiltonian into a matrix product operator
-
     # Intialises the random state from a random distribution of states
     print("Computing initial state...\n")
-    Init_State = true_rng(N, N/4)
-    Init_State2 = true_rng(N+1, (N+1)/4)
+    Init_State = true_rng(N, N, N/4)
+    Init_State2 = true_rng(N, N+1, (N+1)/4)
     psi0 = ITensors.ITensorMPS.MPS(sites, Init_State)
     psi02 = ITensors.ITensorMPS.MPS(sites, Init_State2)
     #psi02 = MPS(sites2, Init_State2; linkdims=10)
 
     # Executes the DMRG algorithm
     print("Applying DMRG...\n")
-    energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff, outputlevel=0)
-    energy2,psi2 = dmrg(H2,psi02;nsweeps,maxdim,cutoff, outputlevel=0)
+    energy,psi = dmrg(H,psi0;nsweeps,maxdim,cutoff, outputlevel=1)
+    energy2,psi2 = dmrg(H,psi02;nsweeps,maxdim,cutoff, outputlevel=1)
 
     return energy, energy2 # This is an int
 
@@ -239,8 +227,8 @@ end
     
 let 
     #U = [round(2.5+0.1*j, digits = 3) for j in 0:15]
-        U = [2, 3, 4]
-    N = 80
+        U = [2, 3, 4, 5, 6]
+    N = 50
     Index = []
     Values = []
     Old = 0
