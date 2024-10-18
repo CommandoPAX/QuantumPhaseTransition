@@ -7,34 +7,32 @@ using LaTeXStrings
 print("begin\n")
 #https://www.overleaf.com/2663516136vbjstqbfdvgk#c9d482
 
-function true_rng(N,max_per_site)
-    state = [rand(0:max_per_site) for j in 1:N]
+function true_rng(size,nb_bosons,max_per_site)
+    state = [rand(0:max_per_site) for j in 1:size] #creation of random boson patches
     tot = sum(state)
-    while tot > N
-        j = rand(1:N)
+    while tot > nb_bosons #Suppression of bosons if we have too many
+        j = rand(1:size)
         if state[j] != 0
             tot = sum(state)
-            sub = rand(1:state[j])
-            if tot-sub < N
-                sub = tot-N
+            sub = rand(1:state[j]) #subtract a random value
+            if tot-sub < N #check if said value doesn't bring the total under the N total of boson required
+                sub = tot-nb_bosons
             end
             state[j] -= sub
         end
     end
-    while tot < N
-        j = rand(1:N)
+    while tot < nb_bosons #Addition of bosons if we have not enough
+        j = rand(1:size)
         if state[j] < max_per_site
             add = rand(state[j]:max_per_site)
             tot = sum(state)
-            if tot+add > N
-                add = N-tot
+            if tot+add > nb_bosons #check if said value doesn't bring the total above the N total of boson required
+                add = nb_bosons-tot
             end
             state[j] += add
         end
     end
-    print(sum(state))
     result = map(string,state)
-    print("initial state done\n")
     return result
 end
 
