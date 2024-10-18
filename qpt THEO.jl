@@ -173,7 +173,7 @@ function Run_Simulation(N, U, J)
 
     
     # Variables needed for the dmrg algorithm
-    nsweeps = 30 # number of sweeps
+    nsweeps = 60 # number of sweeps
     maxdim = [10,20,100,100,200] # bonds dimension
     cutoff = [1E-10] # truncation error
 
@@ -232,8 +232,9 @@ function Run_Simulation(N, U, J)
 end
     
 let 
-    U = [round(2.5+0.1*j, digits = 3) for j in 0:15]
-    N = 30
+    #U = [round(2.5+0.1*j, digits = 3) for j in 0:15]
+        U = [2, 3, 4]
+    N = 80
     Index = []
     Values = []
     Old = 0
@@ -243,7 +244,7 @@ let
         push!(Index, k)
         New=Delta(Enp1, En, N)
         push!(Values, New)
-        if abs(New-Old) > 0.1 && Old !=0
+        if abs(New-Old) > 0.02 && Old !=0
             print("########################## Phase transition found at U/J : ", k, "##########################\n")
         end 
         Old = New
