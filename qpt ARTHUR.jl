@@ -15,7 +15,7 @@ function true_rng(size,nb_bosons,max_per_site)
         if state[j] != 0
             tot = sum(state)
             sub = rand(1:state[j]) #subtract a random value
-            if tot-sub < N #check if said value doesn't bring the total under the N total of boson required
+            if tot-sub < nb_bosons #check if said value doesn't bring the total under the N total of boson required
                 sub = tot-nb_bosons
             end
             state[j] -= sub
